@@ -9,30 +9,39 @@ import com.qcloud.cos.request.UploadFileRequest
 import com.qcloud.cos.sign.Credentials
 import java.io.File
 import java.io.FileReader
+import java.util.*
 
 /**
  * Created by benny on 8/12/17.
  */
 class Uploader(val options: TaskOptions) {
 
+    companion object {
+        private val IMAGE_FILE_EXTENSITONS = arrayOf(
+                "bmp", "jpeg", "jpg", "png", "tiff", "gif", "pcx", "tga", "exif", "fpx", "svg", "psd", "cdr", "pcd", "dxf", "ufo", "eps", "ai", "raw", "wmf"
+        )
+
+
+    }
+
     private val historyFile by lazy {
-        val path = if(options.file.isDirectory){
+        val path = if (options.file.isDirectory) {
             options.file.absolutePath + "/.upload/.history.json"
-        }else{
+        } else {
             options.file.absoluteFile.parent + "/.upload/.history.json"
         }
         File(path).apply {
-            if(!parentFile.isDirectory){
+            if (!parentFile.isDirectory) {
                 parentFile.delete()
                 parentFile.mkdir()
             }
         }
     }
 
-    private val uploadHistory by lazy {
+    val uploadHistory by lazy {
         try {
             Gson().fromJson(FileReader(historyFile), UploadHistory::class.java)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             UploadHistory()
         }
@@ -47,45 +56,52 @@ class Uploader(val options: TaskOptions) {
         COSClient(clientConfig, credentials)
     }
 
-    private fun uploadDirectory(directory: File){
+    private fun uploadDirectory(directory: File) {
         directory.listFiles()?.forEach {
             //忽略该目录
-            if(it.name == ".upload") return@forEach
-            if(it.isDirectory){
+            if (it.name == ".upload") return@forEach
+            if (it.isDirectory) {
                 uploadDirectory(it)
-            }else{
-                uploadSingleFile(UploadHistoryEntry(it.absolutePath, generateRemotePath(it)))
+            } else {
+                uploadSingleFile(uploadHistory[it.absolutePath, generateRemotePath(it)])
             }
         }
     }
 
-    private fun uploadSingleFile(uploadHistoryEntry: UploadHistoryEntry){
+    private fun uploadSingleFile(uploadHistoryEntry: UploadHistoryEntry) {
         val file = File(uploadHistoryEntry.localPath)
-        val uploadFileRequest = UploadFileRequest(options.appInfo.BUCKET, uploadHistoryEntry.remotePath, file.absolutePath)
-        uploadFileRequest.isEnableShaDigest = false
-        uploadFileRequest.insertOnly = InsertOnly.OVER_WRITE
-        val uploadFileRet = client.uploadFile(uploadFileRequest)
-        println("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
-        val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
-        uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
-        uploadHistory.entries[file.name] = uploadHistoryEntry
+        //只上传图片
+        if(file.extension.toLowerCase() !in IMAGE_FILE_EXTENSITONS) return
+        if (file.lastModified() < uploadHistoryEntry.uploadTime) {
+            println("Skipped. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
+        } else {
+            val uploadFileRequest = UploadFileRequest(options.appInfo.BUCKET, uploadHistoryEntry.remotePath, file.absolutePath)
+            uploadFileRequest.isEnableShaDigest = false
+            uploadFileRequest.insertOnly = InsertOnly.OVER_WRITE
+            val uploadFileRet = client.uploadFile(uploadFileRequest)
+            println("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
+            val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
+            uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
+            uploadHistoryEntry.uploadTime = System.currentTimeMillis()
+            uploadHistory[file.absolutePath] = uploadHistoryEntry
+        }
     }
 
     private fun generateRemotePath(file: File): String {
-        return "/" + uploadHistory.id+"/" + file.relativeTo(options.file)
+        return "/" + uploadHistory.id + "/" + file.relativeTo(options.file)
     }
 
 
-    fun upload(){
-        if(options.file.isDirectory){
+    fun upload() {
+        if (options.file.isDirectory) {
             uploadDirectory(options.file)
-        }else{
-            uploadSingleFile(UploadHistoryEntry(options.file.absolutePath, generateRemotePath(options.file)))
+        } else {
+            uploadSingleFile(uploadHistory[options.file.absolutePath, generateRemotePath(options.file)])
         }
         saveHistory()
     }
 
-    private fun saveHistory(){
+    private fun saveHistory() {
         historyFile.delete()
         historyFile.writeText(Gson().toJson(uploadHistory))
     }

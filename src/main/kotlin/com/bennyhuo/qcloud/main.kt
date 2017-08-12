@@ -10,6 +10,7 @@ private val cliOptions: Options = Options()
 
 private fun loadOptions() {
     cliOptions.addOption("f", "file", true, "File or Directory to upload. Default for current directory.")
+    cliOptions.addOption("m", "mdfile", true, "Markdown File or Directory to update. Default for current directory.")
     cliOptions.addOption("c", "config", true, "Config File contains APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET.")
     cliOptions.addOption("appId", true, "appId.")
     cliOptions.addOption("secretId", true, "secretId")
@@ -66,7 +67,7 @@ private fun CommandLine.readOptions(): TaskOptions {
             }
         }
     }
-    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo)
+    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, File(getOptionValue("m")))
 }
 
 fun main(args: Array<String>) {
@@ -75,7 +76,12 @@ fun main(args: Array<String>) {
         val options = PosixParser().parse(cliOptions, args, false)
                 .readHelpOption()
                 .readOptions()
-        Uploader(options).upload()
+        val uploader = Uploader(options)
+        uploader.upload()
+        options.mdFile?.let {
+            val updater = MdFileUpdater(it, uploader.uploadHistory)
+            updater.update()
+        }
     } catch (ex: ParseException) {
         System.err.println(ex.message)
         printUsage()
