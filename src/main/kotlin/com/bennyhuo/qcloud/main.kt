@@ -11,6 +11,7 @@ private val cliOptions: Options = Options()
 private fun loadOptions() {
     cliOptions.addOption("f", "file", true, "File or Directory to upload. Default for current directory.")
     cliOptions.addOption("m", "mdfile", true, "Markdown File or Directory to update. Default for current directory.")
+    cliOptions.addOption("i", "inplace", false, "Update Markdown File inplace.")
     cliOptions.addOption("c", "config", true, "Config File contains APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET.")
     cliOptions.addOption("appId", true, "appId.")
     cliOptions.addOption("secretId", true, "secretId")
@@ -65,7 +66,7 @@ private fun CommandLine.readOptions(): TaskOptions {
             REGION = getOptionValue("region") ?: throw IllegalArgumentException()
         }
     }
-    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, File(getOptionValue("m")))
+    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, hasOption("i"), File(getOptionValue("m")))
 }
 
 fun main(args: Array<String>) {
@@ -77,7 +78,7 @@ fun main(args: Array<String>) {
         val uploader = Uploader(options)
         uploader.upload()
         options.mdFile?.let {
-            val updater = MdFileUpdater(it, uploader.uploadHistory)
+            val updater = MdFileUpdater(options, uploader.uploadHistory)
             updater.update()
         }
     } catch (ex: Exception) {

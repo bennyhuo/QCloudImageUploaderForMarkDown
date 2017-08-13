@@ -6,7 +6,7 @@ import java.io.File
 /**
  * Created by benny on 8/12/17.
  */
-class TaskOptions(val file: File, val appInfo: AppInfo, val mdFile: File? = null)
+class TaskOptions(val file: File, val appInfo: AppInfo, val inplace: Boolean = true, val mdFile: File? = null)
 
 class AppInfo(path: String): AbsProperties(path){
     var APP_ID: Long by prop

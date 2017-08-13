@@ -5,13 +5,14 @@ import java.io.File
 /**
  * Created by benny on 8/13/17.
  */
-class MdFileUpdater(val mdFile: File, val uploadHistory: UploadHistory) {
+class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) {
 
     companion object {
         private const val PATTERN = "!\\[(.*)\\]\\((.*)\\)"
     }
 
     fun update() {
+        val mdFile = options.mdFile!!
         if (mdFile.isDirectory) {
             updateDirectory(mdFile)
         }else{
@@ -44,7 +45,7 @@ class MdFileUpdater(val mdFile: File, val uploadHistory: UploadHistory) {
             result
         }
 
-        val remoteFile = File(parent,  file.nameWithoutExtension + "_remote.md")
+        val remoteFile = if(options.inplace) file else File(parent,  file.nameWithoutExtension + "_remote.md")
         println("update ${file.absolutePath} -> ${remoteFile.absolutePath}")
         remoteFile.writeText(updateText)
     }
