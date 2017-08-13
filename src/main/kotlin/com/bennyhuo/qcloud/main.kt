@@ -39,7 +39,7 @@ ${cliOptions.options().map(Option::usage).sorted().joinToString("\n")}
 private fun Options.options(): MutableList<Option> = ArrayList<Option>().apply { addAll(options as Collection<Option>) }
 
 private fun Option.usage(): String {
-    return String.format("        -%-4s\t%-10s\t%-10s\t- %-20s", opt, if (hasArg()) "[$longOpt]" else "", "", description)
+    return String.format("        -%-8s\t%-10s\t%-10s\t  %-20s", opt, if (hasLongOpt()) "[$longOpt]" else "", "", description)
 }
 
 fun CommandLine.readHelpOption(): CommandLine {
@@ -51,20 +51,18 @@ fun CommandLine.readHelpOption(): CommandLine {
 }
 
 private fun CommandLine.readOptions(): TaskOptions {
-    val appInfo = getOptionValue("s")
+    val appInfo = getOptionValue("c")
             ?.let { AppInfo(it) }
             ?: run {
 
-        AppInfo("./settings.properties").apply {
-            if (File("./settings.properties").exists()) {
-                println("Found settings.properties")
-            } else {
-                APP_ID = getOptionValue("appId")?.toLongOrNull() ?: throw IllegalArgumentException()
-                APP_SECRET_ID = getOptionValue("secretId") ?: throw IllegalArgumentException()
-                APP_SECRET_KEY = getOptionValue("secretKey") ?: throw IllegalArgumentException()
-                BUCKET = getOptionValue("bucket") ?: throw IllegalArgumentException()
-                REGION = getOptionValue("region") ?: throw IllegalArgumentException()
-            }
+        val settings = File.createTempFile("qcloud_uploader", "config")
+        settings.deleteOnExit()
+        AppInfo(settings.absolutePath).apply {
+            APP_ID = getOptionValue("appId")?.toLongOrNull() ?: throw IllegalArgumentException()
+            APP_SECRET_ID = getOptionValue("secretId") ?: throw IllegalArgumentException()
+            APP_SECRET_KEY = getOptionValue("secretKey") ?: throw IllegalArgumentException()
+            BUCKET = getOptionValue("bucket") ?: throw IllegalArgumentException()
+            REGION = getOptionValue("region") ?: throw IllegalArgumentException()
         }
     }
     return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, File(getOptionValue("m")))
@@ -82,8 +80,8 @@ fun main(args: Array<String>) {
             val updater = MdFileUpdater(it, uploader.uploadHistory)
             updater.update()
         }
-    } catch (ex: ParseException) {
-        System.err.println(ex.message)
+    } catch (ex: Exception) {
+        //System.err.println(ex.cause)
         printUsage()
         return
     }

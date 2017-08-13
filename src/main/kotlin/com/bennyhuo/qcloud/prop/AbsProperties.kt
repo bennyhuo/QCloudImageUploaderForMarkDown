@@ -17,7 +17,6 @@ class PropertiesDelegate(val path: String) {
     val properties: Properties by lazy {
         val prop = Properties()
         try {
-
             javaClass.getResourceAsStream(path).use {
                 prop.load(it)
             }

@@ -20,8 +20,6 @@ class Uploader(val options: TaskOptions) {
         private val IMAGE_FILE_EXTENSITONS = arrayOf(
                 "bmp", "jpeg", "jpg", "png", "tiff", "gif", "pcx", "tga", "exif", "fpx", "svg", "psd", "cdr", "pcd", "dxf", "ufo", "eps", "ai", "raw", "wmf"
         )
-
-
     }
 
     private val historyFile by lazy {
