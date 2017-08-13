@@ -12,7 +12,7 @@ class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) 
     }
 
     fun update() {
-        val mdFile = options.mdFile!!
+        val mdFile = options.mdFile
         if (mdFile.isDirectory) {
             updateDirectory(mdFile)
         }else{

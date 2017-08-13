@@ -2,5 +2,5 @@
 *.iml
 .gradle
 build
-settings.properties
+/settings.properties
 testfiles

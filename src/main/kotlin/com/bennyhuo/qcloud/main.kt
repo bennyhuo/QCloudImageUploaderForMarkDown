@@ -1,6 +1,9 @@
 package com.bennyhuo.qcloud
 
-import org.apache.commons.cli.*
+import org.apache.commons.cli.CommandLine
+import org.apache.commons.cli.Option
+import org.apache.commons.cli.Options
+import org.apache.commons.cli.PosixParser
 import java.io.File
 
 /**
@@ -56,17 +59,21 @@ private fun CommandLine.readOptions(): TaskOptions {
             ?.let { AppInfo(it) }
             ?: run {
 
-        val settings = File.createTempFile("qcloud_uploader", "config")
-        settings.deleteOnExit()
+        val appHome = System.getProperty("app.home")
+        val settings = File("$appHome/config/settings.properties")
         AppInfo(settings.absolutePath).apply {
-            APP_ID = getOptionValue("appId")?.toLongOrNull() ?: throw IllegalArgumentException()
-            APP_SECRET_ID = getOptionValue("secretId") ?: throw IllegalArgumentException()
-            APP_SECRET_KEY = getOptionValue("secretKey") ?: throw IllegalArgumentException()
-            BUCKET = getOptionValue("bucket") ?: throw IllegalArgumentException()
-            REGION = getOptionValue("region") ?: throw IllegalArgumentException()
+            if (settings.exists()) {
+                println("Found settings.")
+            } else {
+                APP_ID = getOptionValue("appId")?.toLongOrNull() ?: throw IllegalArgumentException()
+                APP_SECRET_ID = getOptionValue("secretId") ?: throw IllegalArgumentException()
+                APP_SECRET_KEY = getOptionValue("secretKey") ?: throw IllegalArgumentException()
+                BUCKET = getOptionValue("bucket") ?: throw IllegalArgumentException()
+                REGION = getOptionValue("region") ?: throw IllegalArgumentException()
+            }
         }
     }
-    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, hasOption("i"), File(getOptionValue("m")))
+    return TaskOptions(File(getOptionValue("f") ?: "."), appInfo, hasOption("i"), File(getOptionValue("m") ?: "."))
 }
 
 fun main(args: Array<String>) {
@@ -77,12 +84,11 @@ fun main(args: Array<String>) {
                 .readOptions()
         val uploader = Uploader(options)
         uploader.upload()
-        options.mdFile?.let {
-            val updater = MdFileUpdater(options, uploader.uploadHistory)
-            updater.update()
-        }
+        val updater = MdFileUpdater(options, uploader.uploadHistory)
+        updater.update()
     } catch (ex: Exception) {
         //System.err.println(ex.cause)
+        ex.printStackTrace()
         printUsage()
         return
     }
