@@ -14,7 +14,7 @@ private val cliOptions: Options = Options()
 private fun loadOptions() {
     cliOptions.addOption("f", "file", true, "File or Directory to upload. Default for current directory.")
     cliOptions.addOption("m", "mdfile", true, "Markdown File or Directory to update. Default for current directory.")
-    cliOptions.addOption("i", "inplace", false, "Update Markdown File inplace.")
+    cliOptions.addOption("i", "inplace", false, "Update Markdown File inplace. Or a new file named with a postfix '_remote' will be created.")
     cliOptions.addOption("c", "config", true, "Config File contains APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET.")
     cliOptions.addOption("appId", true, "appId.")
     cliOptions.addOption("secretId", true, "secretId")
