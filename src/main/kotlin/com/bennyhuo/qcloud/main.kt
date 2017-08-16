@@ -1,11 +1,15 @@
 package com.bennyhuo.qcloud
 
+import com.bennyhuo.qcloud.entities.AppInfo
+import com.bennyhuo.qcloud.entities.MetaInfo
+import com.bennyhuo.qcloud.entities.TaskOptions
+import com.bennyhuo.qcloud.updater.MdFileUpdater
+import com.bennyhuo.qcloud.uploader.QCloudUploader
 import com.bennyhuo.qcloud.utils.logger
 import org.apache.commons.cli.CommandLine
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.PosixParser
-import org.slf4j.LoggerFactory
 import java.io.File
 
 /**
@@ -84,7 +88,7 @@ fun main(args: Array<String>) {
         val options = PosixParser().parse(cliOptions, args, false)
                 .readHelpOption()
                 .readOptions()
-        val uploader = Uploader(options)
+        val uploader = QCloudUploader(options)
         uploader.upload()
         val updater = MdFileUpdater(options, uploader.uploadHistory)
         updater.update()

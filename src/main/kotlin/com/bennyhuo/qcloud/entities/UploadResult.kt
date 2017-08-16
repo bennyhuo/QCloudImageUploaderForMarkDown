@@ -1,4 +1,4 @@
-package com.bennyhuo.qcloud
+package com.bennyhuo.qcloud.entities
 
 /**
  * Created by benny on 8/12/17.

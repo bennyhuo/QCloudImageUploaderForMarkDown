@@ -1,5 +1,7 @@
-package com.bennyhuo.qcloud
+package com.bennyhuo.qcloud.updater
 
+import com.bennyhuo.qcloud.entities.TaskOptions
+import com.bennyhuo.qcloud.entities.UploadHistory
 import com.bennyhuo.qcloud.utils.logger
 import java.io.File
 

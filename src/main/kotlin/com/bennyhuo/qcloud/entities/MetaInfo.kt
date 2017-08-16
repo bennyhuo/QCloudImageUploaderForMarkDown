@@ -1,4 +1,4 @@
-package com.bennyhuo.qcloud
+package com.bennyhuo.qcloud.entities
 
 import com.bennyhuo.qcloud.prop.AbsProperties
 
@@ -12,6 +12,6 @@ object MetaInfo: AbsProperties("/meta.properties"){
     val desc: String by prop
 
     override fun toString(): String {
-        return "By $author, Version: $version"
+        return "By ${author}, Version: ${version}"
     }
 }

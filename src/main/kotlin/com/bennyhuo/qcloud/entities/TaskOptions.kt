@@ -1,4 +1,4 @@
-package com.bennyhuo.qcloud
+package com.bennyhuo.qcloud.entities
 
 import com.bennyhuo.qcloud.prop.AbsProperties
 import java.io.File

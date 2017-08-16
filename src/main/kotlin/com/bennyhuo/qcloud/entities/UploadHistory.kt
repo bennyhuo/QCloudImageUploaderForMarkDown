@@ -1,4 +1,4 @@
-package com.bennyhuo.qcloud
+package com.bennyhuo.qcloud.entities
 
 import java.util.*
 
