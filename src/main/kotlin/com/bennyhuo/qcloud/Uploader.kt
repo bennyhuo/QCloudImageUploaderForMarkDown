@@ -1,6 +1,7 @@
 package com.bennyhuo.qcloud
 
 import com.bennyhuo.qcloud.utils.fromJson
+import com.bennyhuo.qcloud.utils.logger
 import com.google.gson.Gson
 import com.qcloud.cos.COSClient
 import com.qcloud.cos.ClientConfig
@@ -71,13 +72,13 @@ class Uploader(val options: TaskOptions) {
         //只上传图片
         if(file.extension.toLowerCase() !in IMAGE_FILE_EXTENSITONS) return
         if (file.lastModified() < uploadHistoryEntry.uploadTime) {
-            println("Skipped. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
+            logger.debug("Skipped. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
         } else {
             val uploadFileRequest = UploadFileRequest(options.appInfo.BUCKET, uploadHistoryEntry.remotePath, file.absolutePath)
             uploadFileRequest.isEnableShaDigest = false
             uploadFileRequest.insertOnly = InsertOnly.OVER_WRITE
             val uploadFileRet = client.uploadFile(uploadFileRequest)
-            println("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
+            logger.debug("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
             val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
             uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
             uploadHistoryEntry.uploadTime = System.currentTimeMillis()

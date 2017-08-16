@@ -1,5 +1,6 @@
 package com.bennyhuo.qcloud
 
+import com.bennyhuo.qcloud.utils.logger
 import java.io.File
 
 /**
@@ -33,6 +34,7 @@ class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) 
 
     private fun updateFile(file: File) {
         val parent = file.absoluteFile.parentFile
+        val rootFile = if(options.mdFile.isDirectory) options.mdFile else options.mdFile.absoluteFile.parentFile
         val text = file.readText()
         val regex = Regex(PATTERN)
 
@@ -40,13 +42,15 @@ class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) 
             matchResult ->
            val result = uploadHistory[File(parent, matchResult.groupValues[2]).absolutePath]?.let {
                 "![${matchResult.groupValues[1]}](${it.remoteUrl})"
-            }?: matchResult.value
-            println("${matchResult.value} -> $result")
+            }?: uploadHistory[File(rootFile, matchResult.groupValues[2]).absolutePath]?.let{
+               "![${matchResult.groupValues[1]}](${it.remoteUrl})"
+           }?:matchResult.value
+            logger.debug("${matchResult.value} -> $result")
             result
         }
 
         val remoteFile = if(options.inplace) file else File(parent,  file.nameWithoutExtension + "_remote.md")
-        println("update ${file.absolutePath} -> ${remoteFile.absolutePath}")
+        logger.debug("update ${file.absolutePath} -> ${remoteFile.absolutePath}")
         remoteFile.writeText(updateText)
     }
 

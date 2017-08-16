@@ -1,5 +1,6 @@
 package com.bennyhuo.qcloud.prop
 
+import com.bennyhuo.qcloud.utils.logger
 import java.io.File
 import java.io.FileInputStream
 import java.util.*
@@ -19,13 +20,13 @@ class PropertiesDelegate(val path: String) {
                 prop.load(it)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            //logger.error(e.message, e)
             try {
                 ClassLoader.getSystemClassLoader().getResourceAsStream(path).use {
                     prop.load(it)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                //logger.error(e.message, e)
                 FileInputStream(path).use {
                     prop.load(it)
                 }

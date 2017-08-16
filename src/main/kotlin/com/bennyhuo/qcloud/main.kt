@@ -1,9 +1,11 @@
 package com.bennyhuo.qcloud
 
+import com.bennyhuo.qcloud.utils.logger
 import org.apache.commons.cli.CommandLine
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.PosixParser
+import org.slf4j.LoggerFactory
 import java.io.File
 
 /**
@@ -63,7 +65,7 @@ private fun CommandLine.readOptions(): TaskOptions {
         val settings = File("$appHome/config/settings.properties")
         AppInfo(settings.absolutePath).apply {
             if (settings.exists()) {
-                println("Found settings.")
+                logger.debug("Found settings.")
             } else {
                 APP_ID = getOptionValue("appId")?.toLongOrNull() ?: throw IllegalArgumentException()
                 APP_SECRET_ID = getOptionValue("secretId") ?: throw IllegalArgumentException()
@@ -87,8 +89,7 @@ fun main(args: Array<String>) {
         val updater = MdFileUpdater(options, uploader.uploadHistory)
         updater.update()
     } catch (ex: Exception) {
-        //System.err.println(ex.cause)
-        ex.printStackTrace()
+        logger.error(ex.message, ex)
         printUsage()
         return
     }
