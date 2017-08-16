@@ -1,5 +1,7 @@
 package com.bennyhuo.qcloud
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import com.bennyhuo.qcloud.entities.AppInfo
 import com.bennyhuo.qcloud.entities.MetaInfo
 import com.bennyhuo.qcloud.entities.TaskOptions
@@ -10,7 +12,9 @@ import org.apache.commons.cli.CommandLine
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.PosixParser
+import org.slf4j.LoggerFactory
 import java.io.File
+
 
 /**
  * Created by benny on 8/12/17.
@@ -22,6 +26,7 @@ private fun loadOptions() {
     cliOptions.addOption("m", "mdfile", true, "Markdown File or Directory to update. Default for current directory.")
     cliOptions.addOption("i", "inplace", false, "Update Markdown File inplace. Or a new file named with a postfix '_remote' will be created.")
     cliOptions.addOption("c", "config", true, "Config File contains APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET.")
+    cliOptions.addOption("debug", false, "set log level to DEBUG.")
     cliOptions.addOption("appId", true, "appId.")
     cliOptions.addOption("secretId", true, "secretId")
     cliOptions.addOption("secretKey", true, "secretKey")
@@ -61,6 +66,9 @@ fun CommandLine.readHelpOption(): CommandLine {
 }
 
 private fun CommandLine.readOptions(): TaskOptions {
+    val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+    root.level = if(hasOption("debug")) Level.DEBUG else Level.ERROR
+
     val appInfo = getOptionValue("c")
             ?.let { AppInfo(it) }
             ?: run {
