@@ -14,9 +14,9 @@ APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET can also be configured in command lin
             -appId   	          	          	  appId.              
             -bucket  	          	          	  bucketName          
             -c       	[config]  	          	  Config File contains APP_ID/APP_SECRET_ID/APP_SECRET_KEY/BUCKET.
-            -f       	[file]    	          	  File or Directory to upload. Default for current directory.
+            -f       	[file]    	          	      File or Directory to upload. Default for current directory.
             -h       	[help]    	          	  Print usages.       
-            -i       	[inplace] 	          	  Update Markdown File inplace. Or a new file named with a postfix '_remote' will be created.
+            -r       	[remove] 	          	  Remove image files after uploading.
             -m       	[mdfile]  	          	  Markdown File or Directory to update. Default for current directory.
             -region  	          	          	  region, eg. tj      
             -secretId	          	          	  secretId            
