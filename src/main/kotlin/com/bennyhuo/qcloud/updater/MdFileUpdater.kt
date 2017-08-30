@@ -51,7 +51,8 @@ class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) 
             result
         }
 
-        val remoteFile = if(options.inplace) file else File(parent,  file.nameWithoutExtension + "_remote.md")
+        //update in place
+        val remoteFile = file
         logger.debug("update ${file.absolutePath} -> ${remoteFile.absolutePath}")
         remoteFile.writeText(updateText)
     }

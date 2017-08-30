@@ -45,7 +45,6 @@ class QCloudUploader(val options: TaskOptions) {
         try {
             Gson().fromJson(FileReader(historyFile), UploadHistory::class.java)
         } catch (e: Exception) {
-            e.printStackTrace()
             UploadHistory()
         }
     }
@@ -65,18 +64,26 @@ class QCloudUploader(val options: TaskOptions) {
             if (it.name == ".upload") return@forEach
             if (it.isDirectory) {
                 uploadDirectory(it)
+                if(options.removeAfterUploading){
+                    logger.debug("Try Remove local directory: ${it.path}")
+                    it.delete()
+                }
             } else {
-                uploadSingleFile(uploadHistory[it.absolutePath, generateRemotePath(it)])
+                uploadSingleFile(it)
             }
         }
     }
 
-    private fun uploadSingleFile(uploadHistoryEntry: UploadHistoryEntry) {
-        val file = File(uploadHistoryEntry.localPath)
+    private fun uploadSingleFile(file: File) {
+        val uploadHistoryEntry = if (file == options.file){
+            uploadHistory[file.name, generateRemotePath(file)]
+        }else{
+            uploadHistory[file.toRelativeString(options.file), generateRemotePath(file)]
+        }
         //只上传图片
-        if(file.extension.toLowerCase() !in IMAGE_FILE_EXTENSITONS) return
+        if (file.extension.toLowerCase() !in IMAGE_FILE_EXTENSITONS) return
         if (file.lastModified() < uploadHistoryEntry.uploadTime) {
-            logger.debug("Skipped ${file.absolutePath}. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
+            logger.debug("Skipped ${file.path}. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
         } else {
             val uploadFileRequest = UploadFileRequest(options.appInfo.BUCKET, uploadHistoryEntry.remotePath, file.absolutePath)
             uploadFileRequest.isEnableShaDigest = false
@@ -86,12 +93,19 @@ class QCloudUploader(val options: TaskOptions) {
             val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
             uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
             uploadHistoryEntry.uploadTime = System.currentTimeMillis()
-            uploadHistory[file.absolutePath] = uploadHistoryEntry
+            uploadHistory[uploadHistoryEntry.localPath] = uploadHistoryEntry
+            if(options.removeAfterUploading){
+                logger.debug("Remove local file: ${file.path}")
+                file.delete()
+            }
         }
     }
 
     private fun generateRemotePath(file: File): String {
-        return "/" + uploadHistory.id + "/" + file.relativeTo(options.file)
+        return "/" + uploadHistory.id + "/" + if (file == options.file)
+            file.name
+        else
+            file.relativeTo(options.file)
     }
 
 
@@ -99,7 +113,7 @@ class QCloudUploader(val options: TaskOptions) {
         if (options.file.isDirectory) {
             uploadDirectory(options.file)
         } else {
-            uploadSingleFile(uploadHistory[options.file.absolutePath, generateRemotePath(options.file)])
+            uploadSingleFile(options.file)
         }
         saveHistory()
     }
