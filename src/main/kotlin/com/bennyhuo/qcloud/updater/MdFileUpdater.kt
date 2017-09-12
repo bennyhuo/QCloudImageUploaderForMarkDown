@@ -42,9 +42,9 @@ class MdFileUpdater(val options: TaskOptions, val uploadHistory: UploadHistory) 
 
         val updateText = text.replace(regex){
             matchResult ->
-           val result = uploadHistory[File(parent, matchResult.groupValues[2]).absolutePath]?.let {
+           val result = uploadHistory[File(parent, matchResult.groupValues[2]).toRelativeString(parent)]?.let {
                 "![${matchResult.groupValues[1]}](${it.remoteUrl})"
-            }?: uploadHistory[File(rootFile, matchResult.groupValues[2]).absolutePath]?.let{
+            }?: uploadHistory[File(rootFile, matchResult.groupValues[2]).toRelativeString(rootFile)]?.let{
                "![${matchResult.groupValues[1]}](${it.remoteUrl})"
            }?:matchResult.value
             logger.debug("${matchResult.value} -> $result")
