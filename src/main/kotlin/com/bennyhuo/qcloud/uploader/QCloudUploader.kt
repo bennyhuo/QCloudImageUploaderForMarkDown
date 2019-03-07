@@ -14,6 +14,7 @@ import com.qcloud.cos.request.UploadFileRequest
 import com.qcloud.cos.sign.Credentials
 import java.io.File
 import java.io.FileReader
+import java.lang.RuntimeException
 import java.util.*
 
 /**
@@ -91,12 +92,17 @@ class QCloudUploader(val options: TaskOptions) {
             val uploadFileRet = client.uploadFile(uploadFileRequest)
             logger.debug("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
             val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
-            uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
-            uploadHistoryEntry.uploadTime = System.currentTimeMillis()
-            uploadHistory[uploadHistoryEntry.localPath] = uploadHistoryEntry
-            if(options.removeAfterUploading){
-                logger.debug("Remove local file: ${file.path}")
-                file.delete()
+            if(uploadResult.code == 0){
+                uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
+                uploadHistoryEntry.uploadTime = System.currentTimeMillis()
+                uploadHistory[uploadHistoryEntry.localPath] = uploadHistoryEntry
+                if(options.removeAfterUploading){
+                    logger.debug("Remove local file: ${file.path}")
+                    file.delete()
+                }
+            } else {
+                logger.error("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, failed: result: $uploadFileRet")
+                throw RuntimeException("Upload failed. ")
             }
         }
     }

@@ -39,15 +39,15 @@ private fun loadOptions() {
 fun printUsage() {
     println(
             """
-${MetaInfo.name}
+            ${MetaInfo.name}
 
-        ${MetaInfo.desc}
+                    ${MetaInfo.desc}
 
-        by ${MetaInfo.author}
-        v${MetaInfo.version}
+                    by ${MetaInfo.author}
+                    v${MetaInfo.version}
 
-${cliOptions.options().map(Option::usage).sorted().joinToString("\n")}
-"""
+            ${cliOptions.options().map(Option::usage).sorted().joinToString("\n")}
+            """.trimIndent()
     )
 }
 
