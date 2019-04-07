@@ -93,7 +93,11 @@ class QCloudUploader(val options: TaskOptions) {
             logger.debug("Upload: ${uploadHistoryEntry.localPath} -> ${uploadHistoryEntry.remotePath}, result: $uploadFileRet")
             val uploadResult: UploadResult = Gson().fromJson(uploadFileRet)
             if(uploadResult.code == 0){
-                uploadHistoryEntry.remoteUrl = uploadResult.data.source_url
+                uploadHistoryEntry.remoteUrl = if(uploadResult.data.source_url.startsWith("http://")){
+                    uploadResult.data.source_url.replace("http://", "https://")
+                } else {
+                    uploadResult.data.source_url
+                }
                 uploadHistoryEntry.uploadTime = System.currentTimeMillis()
                 uploadHistory[uploadHistoryEntry.localPath] = uploadHistoryEntry
                 if(options.removeAfterUploading){
@@ -125,7 +129,12 @@ class QCloudUploader(val options: TaskOptions) {
     }
 
     private fun saveHistory() {
-        historyFile.delete()
+        val backupFile = File(historyFile.parent, historyFile.name + ".bak")
+        if(backupFile.exists()){
+            backupFile.delete()
+        }
+        historyFile.renameTo(backupFile)
+        logger.info("History file is backed up to $backupFile")
         historyFile.writeText(Gson().toJson(uploadHistory))
     }
 }
