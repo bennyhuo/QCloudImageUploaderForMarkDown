@@ -2,7 +2,6 @@ package com.bennyhuo.qcloud.uploader
 
 import com.bennyhuo.qcloud.entities.TaskOptions
 import com.bennyhuo.qcloud.entities.UploadHistory
-import com.bennyhuo.qcloud.entities.UploadHistoryEntry
 import com.bennyhuo.qcloud.entities.UploadResult
 import com.bennyhuo.qcloud.utils.fromJson
 import com.bennyhuo.qcloud.utils.logger
@@ -23,7 +22,7 @@ import java.util.*
 class QCloudUploader(val options: TaskOptions) {
 
     companion object {
-        private val IMAGE_FILE_EXTENSITONS = arrayOf(
+        private val IMAGE_FILE_EXTENSIONS = arrayOf(
                 "bmp", "jpeg", "jpg", "png", "tiff", "gif", "pcx", "tga", "exif", "fpx", "svg", "psd", "cdr", "pcd", "dxf", "ufo", "eps", "ai", "raw", "wmf"
         )
     }
@@ -82,7 +81,7 @@ class QCloudUploader(val options: TaskOptions) {
             uploadHistory[file.toRelativeString(options.file), generateRemotePath(file)]
         }
         //只上传图片
-        if (file.extension.toLowerCase() !in IMAGE_FILE_EXTENSITONS) return
+        if (file.extension.toLowerCase() !in IMAGE_FILE_EXTENSIONS) return
         if (file.lastModified() < uploadHistoryEntry.uploadTime) {
             logger.debug("Skipped ${file.path}. Already uploaded. Last modified: ${Date(file.lastModified())}, uploaded: ${Date(uploadHistoryEntry.uploadTime)} ")
         } else {
@@ -115,7 +114,7 @@ class QCloudUploader(val options: TaskOptions) {
         return "/" + uploadHistory.id + "/" + if (file == options.file)
             file.name
         else
-            file.relativeTo(options.file)
+            file.toRelativeString(options.file).replace("\\", "/")
     }
 
 
